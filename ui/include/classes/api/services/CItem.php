@@ -335,7 +335,7 @@ class CItem extends CItemGeneral {
 
 				$sqlParts['from']['hosts'] = 'hosts h';
 				$sqlParts['where']['hi'] = 'h.hostid=i.hostid';
-				$sqlParts['where']['h'] = dbConditionString('h.host', $options['filter']['host'], false, true);
+				$sqlParts['where']['h'] = dbConditionString('h.host', $options['filter']['host']);
 			}
 
 			if (array_key_exists('flags', $options['filter'])
@@ -1196,7 +1196,7 @@ class CItem extends CItemGeneral {
 		}
 		if ($requestedOutput) {
 			$historyTime = empty($options['lastsearchtime']) ? CSettingsHelper::get(CSettingsHelper::HISTORY_PERIOD) : $options['lastsearchtime'];
-			$history = Manager::History()->getLastValues($result, $requestedOutput['prevvalue']?2:1, timeUnitToSeconds($historyTime));
+			$history = Manager::History()->getLastValues($result, (!empty($requestedOutput['prevvalue'] && $requestedOutput['prevvalue']))?2:1, timeUnitToSeconds($historyTime));
 			foreach ($result as &$item) {
 				$lastHistory = isset($history[$item['itemid']][0]) ? $history[$item['itemid']][0] : null;
 				$prevHistory = isset($history[$item['itemid']][1]) ? $history[$item['itemid']][1] : null;
