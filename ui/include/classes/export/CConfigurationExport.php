@@ -179,6 +179,7 @@ class CConfigurationExport {
 			return $this->writer->write($this->builder->getExport());
 		}
 		catch (CConfigurationExportException $e) {
+            trigger_error($e->getTraceAsString(), E_USER_NOTICE);
 			return false;
 		}
 	}
@@ -515,7 +516,6 @@ class CConfigurationExport {
             'selectPreprocessing' => ['type', 'params', 'error_handler', 'error_handler_params'],
             'selectTags' => ['tag', 'value'],
             'hostids' => array_keys($hosts),
-            'inherited' => true,
             'webitems' => true,
             'filter' => ['flags' => ZBX_FLAG_DISCOVERY_NORMAL],
             'preservekeys' => true
