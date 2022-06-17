@@ -232,12 +232,13 @@ static void	add_history_dbl(const zbx_vector_ptr_t *history)
 		if(complete_hour != -1 && complete_hour != hour){
 			if(db_additional == NULL){
 				db_additional = (zbx_db_insert_t *)zbx_malloc(NULL, sizeof(zbx_db_insert_t));
-				zbx_db_insert_prepare(db_insert, "history", "itemid", "clock", "ns", "value", NULL);
+				zbx_db_insert_prepare(db_additional, "history", "itemid", "clock", "ns", "value", NULL);
 			}
 
 			zbx_db_insert_add_values(db_additional, h->itemid, h->ts.sec, h->ts.ns, h->value.ui64);
 		} else {
 			zbx_db_insert_add_values(db_insert, h->itemid, h->ts.sec, h->ts.ns, h->value.ui64);
+			complete_hour = hour;
 		}
 	}
 
@@ -267,12 +268,13 @@ static void	add_history_uint(const zbx_vector_ptr_t *history)
 		if(complete_hour != -1 && complete_hour != hour){
 			if(db_additional == NULL){
 				db_additional = (zbx_db_insert_t *)zbx_malloc(NULL, sizeof(zbx_db_insert_t));
-				zbx_db_insert_prepare(db_insert, "history_uint", "itemid", "clock", "ns", "value", NULL);
+				zbx_db_insert_prepare(db_additional, "history_uint", "itemid", "clock", "ns", "value", NULL);
 			}
 
 			zbx_db_insert_add_values(db_additional, h->itemid, h->ts.sec, h->ts.ns, h->value.ui64);
 		} else {
 			zbx_db_insert_add_values(db_insert, h->itemid, h->ts.sec, h->ts.ns, h->value.ui64);
+			complete_hour = hour;
 		}
 	}
 
@@ -302,12 +304,13 @@ static void	add_history_str(const zbx_vector_ptr_t *history)
 		if(complete_hour != -1 && complete_hour != hour){
 			if(db_additional == NULL){
 				db_additional = (zbx_db_insert_t *)zbx_malloc(NULL, sizeof(zbx_db_insert_t));
-				zbx_db_insert_prepare(db_insert, "history_str", "itemid", "clock", "ns", "value", NULL);
+				zbx_db_insert_prepare(db_additional, "history_str", "itemid", "clock", "ns", "value", NULL);
 			}
 
 			zbx_db_insert_add_values(db_additional, h->itemid, h->ts.sec, h->ts.ns, h->value.ui64);
 		} else {
 			zbx_db_insert_add_values(db_insert, h->itemid, h->ts.sec, h->ts.ns, h->value.ui64);
+			complete_hour = hour;
 		}
 	}
 
