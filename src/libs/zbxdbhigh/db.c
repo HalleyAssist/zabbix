@@ -3028,66 +3028,71 @@ int	zbx_db_insert_execute(zbx_db_insert_t *self)
 
 	/* create sql insert statement command */
 
-	zbx_strcpy_alloc(&sql_command, &sql_command_alloc, &sql_command_offset, "insert into ");
-
 	table_name = self->table->table;
 #ifdef HAVE_MYSQL
-	if(isHistory == 2){
-		for (j = 0; j < self->fields.values_num; j++){
-			field = (const ZBX_FIELD *)self->fields.values[j];
+	if(isHistory){
+		if(isHistory == 2){
+			zbx_strcpy_alloc(&sql_command, &sql_command_alloc, &sql_command_offset, "insert ignore into ");
+			for (j = 0; j < self->fields.values_num; j++){
+				field = (const ZBX_FIELD *)self->fields.values[j];
 
-			if(strcmp(field->name, "clock") == 0){
-				for (i = 0; i < self->rows.values_num; i++)
-				{
-					zbx_db_value_t	*values = (zbx_db_value_t *)self->rows.values[i];
-					const zbx_db_value_t	*value = &values[j];
-					uint64_t clock_val;
+				if(strcmp(field->name, "clock") == 0){
+					for (i = 0; i < self->rows.values_num; i++)
+					{
+						zbx_db_value_t	*values = (zbx_db_value_t *)self->rows.values[i];
+						const zbx_db_value_t	*value = &values[j];
+						uint64_t clock_val;
 
-					switch(field->type){
-						case ZBX_TYPE_UINT:
-							clock_val = value->ui64;
-							if(clock_val > clock_max){
-								clock_max = clock_val;
-							}
-							if(clock_val < clock_min){
-								clock_min = clock_val;
-							}
-							break;
-						case ZBX_TYPE_INT:
-							clock_val = (uint64_t)value->i32;
-							if(clock_val > clock_max){
-								clock_max = clock_val;
-							}
-							if(clock_val < clock_min){
-								clock_min = clock_val;
-							}
-							break;
+						switch(field->type){
+							case ZBX_TYPE_UINT:
+								clock_val = value->ui64;
+								if(clock_val > clock_max){
+									clock_max = clock_val;
+								}
+								if(clock_val < clock_min){
+									clock_min = clock_val;
+								}
+								break;
+							case ZBX_TYPE_INT:
+								clock_val = (uint64_t)value->i32;
+								if(clock_val > clock_max){
+									clock_max = clock_val;
+								}
+								if(clock_val < clock_min){
+									clock_min = clock_val;
+								}
+								break;
+						}
+					}
+					break;
+				}
+			}
+
+			if(clock_min != -1){
+				min_value = db_partition_range(table_name);
+				if(min_value == -1){
+					zabbix_log(LOG_LEVEL_ERR, "insert [table:%s] failed due to missing all partitions", table_name);
+					goto out;
+				}
+				if(clock_min <= min_value){
+					clock_min = min_value;
+					if(clock_max <= min_value){
+						clock_max = min_value;
 					}
 				}
-				break;
-			}
-		}
 
-		if(clock_min != -1){
-			min_value = db_partition_range(table_name);
-			if(min_value == -1){
-				zabbix_log(LOG_LEVEL_ERR, "insert [table:%s] failed due to missing all partitions", table_name);
-				goto out;
-			}
-			if(clock_min <= min_value){
-				clock_min = min_value;
-				if(clock_max <= min_value){
-					clock_max = min_value;
+				// If min and max are the same partition then we can optimize out the CONNECT table
+				db_partition_produce_name(clock_min, table_name, partition_min, sizeof(partition_min));
+				db_partition_produce_name(clock_max, table_name, partition_max, sizeof(partition_max));
+				if(strcmp(partition_min, partition_max) == 0) {
+					table_name = partition_min;
 				}
 			}
-
-			// If min and max are the same partition then we can optimize out the CONNECT table
-			db_partition_produce_name(clock_min, table_name, partition_min, sizeof(partition_min));
-			db_partition_produce_name(clock_max, table_name, partition_max, sizeof(partition_max));
-			if(strcmp(partition_min, partition_max) == 0) {
-				table_name = partition_min;
-			}
+		} else{
+			zbx_strcpy_alloc(&sql_command, &sql_command_alloc, &sql_command_offset, "insert into ");
 		}
+	} else{
+		zbx_strcpy_alloc(&sql_command, &sql_command_alloc, &sql_command_offset, "insert into ");
 	}
 #endif
 
@@ -3267,15 +3272,7 @@ retry_oracle:
 		if (',' == sql[sql_offset - 1])
 		{
 			sql_offset--;
-#		ifdef HAVE_MYSQL
-			if(isHistory){
-				zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, " ON DUPLICATE KEY UPDATE value=VALUES(value);\n");
-			}else{
-				zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, ";\n");
-			}
-#		else
 			zbx_strcpy_alloc(&sql, &sql_alloc, &sql_offset, ";\n");
-#		endif
 		}
 #	endif
 		zabbix_log(LOG_LEVEL_DEBUG, "zbx_db_insert_execute: isHistory=[%d], sql=[%s]", isHistory, sql);

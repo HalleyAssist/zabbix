@@ -224,12 +224,13 @@ static void	add_history_dbl(const zbx_vector_ptr_t *history)
 	for (i = 0; i < history->values_num; i++)
 	{
 		const ZBX_DC_HISTORY	*h = (ZBX_DC_HISTORY *)history->values[i];
+		time_t rawtime;
 
 		if (ITEM_VALUE_TYPE_FLOAT != h->value_type)
 			continue;
 
-		ts = *gmtime(&h->ts.sec);
-		
+		rawtime = (time_t)h->ts.sec;
+		ts = *gmtime(&rawtime);
 		if(complete_hour != -1 && complete_hour != ts.tm_hour){
 			if(db_additional == NULL){
 				db_additional = (zbx_db_insert_t *)zbx_malloc(NULL, sizeof(zbx_db_insert_t));
@@ -261,11 +262,13 @@ static void	add_history_uint(const zbx_vector_ptr_t *history)
 	for (i = 0; i < history->values_num; i++)
 	{
 		const ZBX_DC_HISTORY	*h = (ZBX_DC_HISTORY *)history->values[i];
+		time_t rawtime;
 
 		if (ITEM_VALUE_TYPE_UINT64 != h->value_type)
 			continue;
 
-		ts = *gmtime(&h->ts.sec);
+		rawtime = (time_t)h->ts.sec;
+		ts = *gmtime(&rawtime);
 		if(complete_hour != -1 && complete_hour != ts.tm_hour){
 			if(db_additional == NULL){
 				db_additional = (zbx_db_insert_t *)zbx_malloc(NULL, sizeof(zbx_db_insert_t));
@@ -297,11 +300,13 @@ static void	add_history_str(const zbx_vector_ptr_t *history)
 	for (i = 0; i < history->values_num; i++)
 	{
 		const ZBX_DC_HISTORY	*h = (ZBX_DC_HISTORY *)history->values[i];
+		time_t rawtime;
 
 		if (ITEM_VALUE_TYPE_STR != h->value_type)
 			continue;
 
-		ts = *gmtime(&h->ts.sec);
+		rawtime = (time_t)h->ts.sec;
+		ts = *gmtime(&rawtime);
 		if(complete_hour != -1 && complete_hour != ts.tm_hour){
 			if(db_additional == NULL){
 				db_additional = (zbx_db_insert_t *)zbx_malloc(NULL, sizeof(zbx_db_insert_t));
