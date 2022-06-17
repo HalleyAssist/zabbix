@@ -214,8 +214,8 @@ static int	sql_writer_flush(void)
 
 static void	add_history_dbl(const zbx_vector_ptr_t *history)
 {
-	int		i;
-	zbx_db_insert_t	*db_insert;
+	int		i, complete_hour = -1;
+	zbx_db_insert_t	*db_insert, *db_additional = NULL;
 
 	db_insert = (zbx_db_insert_t *)zbx_malloc(NULL, sizeof(zbx_db_insert_t));
 	zbx_db_insert_prepare(db_insert, "history", "itemid", "clock", "ns", "value", NULL);
@@ -223,20 +223,34 @@ static void	add_history_dbl(const zbx_vector_ptr_t *history)
 	for (i = 0; i < history->values_num; i++)
 	{
 		const ZBX_DC_HISTORY	*h = (ZBX_DC_HISTORY *)history->values[i];
+		int hour;
 
 		if (ITEM_VALUE_TYPE_FLOAT != h->value_type)
 			continue;
 
-		zbx_db_insert_add_values(db_insert, h->itemid, h->ts.sec, h->ts.ns, h->value.dbl);
+		hour = h->ts.sec / (60 * 60);
+		if(complete_hour != -1 && complete_hour != hour){
+			if(db_additional == NULL){
+				db_additional = (zbx_db_insert_t *)zbx_malloc(NULL, sizeof(zbx_db_insert_t));
+				zbx_db_insert_prepare(db_insert, "history", "itemid", "clock", "ns", "value", NULL);
+			}
+
+			zbx_db_insert_add_values(db_additional, h->itemid, h->ts.sec, h->ts.ns, h->value.ui64);
+		} else {
+			zbx_db_insert_add_values(db_insert, h->itemid, h->ts.sec, h->ts.ns, h->value.ui64);
+		}
 	}
 
 	sql_writer_add_dbinsert(db_insert);
+	if(db_additional){
+		sql_writer_add_dbinsert(db_additional);
+	}
 }
 
 static void	add_history_uint(const zbx_vector_ptr_t *history)
 {
-	int		i;
-	zbx_db_insert_t	*db_insert;
+	int		i, complete_hour = -1;
+	zbx_db_insert_t	*db_insert, *db_additional = NULL;
 
 	db_insert = (zbx_db_insert_t *)zbx_malloc(NULL, sizeof(zbx_db_insert_t));
 	zbx_db_insert_prepare(db_insert, "history_uint", "itemid", "clock", "ns", "value", NULL);
@@ -244,20 +258,34 @@ static void	add_history_uint(const zbx_vector_ptr_t *history)
 	for (i = 0; i < history->values_num; i++)
 	{
 		const ZBX_DC_HISTORY	*h = (ZBX_DC_HISTORY *)history->values[i];
+		int hour;
 
 		if (ITEM_VALUE_TYPE_UINT64 != h->value_type)
 			continue;
 
-		zbx_db_insert_add_values(db_insert, h->itemid, h->ts.sec, h->ts.ns, h->value.ui64);
+		hour = h->ts.sec / (60 * 60);
+		if(complete_hour != -1 && complete_hour != hour){
+			if(db_additional == NULL){
+				db_additional = (zbx_db_insert_t *)zbx_malloc(NULL, sizeof(zbx_db_insert_t));
+				zbx_db_insert_prepare(db_insert, "history_uint", "itemid", "clock", "ns", "value", NULL);
+			}
+
+			zbx_db_insert_add_values(db_additional, h->itemid, h->ts.sec, h->ts.ns, h->value.ui64);
+		} else {
+			zbx_db_insert_add_values(db_insert, h->itemid, h->ts.sec, h->ts.ns, h->value.ui64);
+		}
 	}
 
 	sql_writer_add_dbinsert(db_insert);
+	if(db_additional){
+		sql_writer_add_dbinsert(db_additional);
+	}
 }
 
 static void	add_history_str(const zbx_vector_ptr_t *history)
 {
-	int		i;
-	zbx_db_insert_t	*db_insert;
+	int		i, complete_hour = -1;
+	zbx_db_insert_t	*db_insert, *db_additional = NULL;
 
 	db_insert = (zbx_db_insert_t *)zbx_malloc(NULL, sizeof(zbx_db_insert_t));
 	zbx_db_insert_prepare(db_insert, "history_str", "itemid", "clock", "ns", "value", NULL);
@@ -265,14 +293,28 @@ static void	add_history_str(const zbx_vector_ptr_t *history)
 	for (i = 0; i < history->values_num; i++)
 	{
 		const ZBX_DC_HISTORY	*h = (ZBX_DC_HISTORY *)history->values[i];
+		int hour;
 
 		if (ITEM_VALUE_TYPE_STR != h->value_type)
 			continue;
 
-		zbx_db_insert_add_values(db_insert, h->itemid, h->ts.sec, h->ts.ns, h->value.str);
+		hour = h->ts.sec / (60 * 60);
+		if(complete_hour != -1 && complete_hour != hour){
+			if(db_additional == NULL){
+				db_additional = (zbx_db_insert_t *)zbx_malloc(NULL, sizeof(zbx_db_insert_t));
+				zbx_db_insert_prepare(db_insert, "history_str", "itemid", "clock", "ns", "value", NULL);
+			}
+
+			zbx_db_insert_add_values(db_additional, h->itemid, h->ts.sec, h->ts.ns, h->value.ui64);
+		} else {
+			zbx_db_insert_add_values(db_insert, h->itemid, h->ts.sec, h->ts.ns, h->value.ui64);
+		}
 	}
 
 	sql_writer_add_dbinsert(db_insert);
+	if(db_additional){
+		sql_writer_add_dbinsert(db_additional);
+	}
 }
 
 static void	add_history_text(const zbx_vector_ptr_t *history)
