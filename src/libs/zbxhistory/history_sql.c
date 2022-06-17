@@ -216,6 +216,7 @@ static void	add_history_dbl(const zbx_vector_ptr_t *history)
 {
 	int		i, complete_hour = -1;
 	zbx_db_insert_t	*db_insert, *db_additional = NULL;
+    struct tm  ts;
 
 	db_insert = (zbx_db_insert_t *)zbx_malloc(NULL, sizeof(zbx_db_insert_t));
 	zbx_db_insert_prepare(db_insert, "history", "itemid", "clock", "ns", "value", NULL);
@@ -223,13 +224,13 @@ static void	add_history_dbl(const zbx_vector_ptr_t *history)
 	for (i = 0; i < history->values_num; i++)
 	{
 		const ZBX_DC_HISTORY	*h = (ZBX_DC_HISTORY *)history->values[i];
-		int hour;
 
 		if (ITEM_VALUE_TYPE_FLOAT != h->value_type)
 			continue;
 
-		hour = h->ts.sec / (60 * 60);
-		if(complete_hour != -1 && complete_hour != hour){
+		ts = *gmtime(&h->ts.sec);
+		
+		if(complete_hour != -1 && complete_hour != ts.tm_hour){
 			if(db_additional == NULL){
 				db_additional = (zbx_db_insert_t *)zbx_malloc(NULL, sizeof(zbx_db_insert_t));
 				zbx_db_insert_prepare(db_additional, "history", "itemid", "clock", "ns", "value", NULL);
@@ -238,7 +239,7 @@ static void	add_history_dbl(const zbx_vector_ptr_t *history)
 			zbx_db_insert_add_values(db_additional, h->itemid, h->ts.sec, h->ts.ns, h->value.ui64);
 		} else {
 			zbx_db_insert_add_values(db_insert, h->itemid, h->ts.sec, h->ts.ns, h->value.ui64);
-			complete_hour = hour;
+			complete_hour = ts.tm_hour;
 		}
 	}
 
@@ -252,6 +253,7 @@ static void	add_history_uint(const zbx_vector_ptr_t *history)
 {
 	int		i, complete_hour = -1;
 	zbx_db_insert_t	*db_insert, *db_additional = NULL;
+    struct tm  ts;
 
 	db_insert = (zbx_db_insert_t *)zbx_malloc(NULL, sizeof(zbx_db_insert_t));
 	zbx_db_insert_prepare(db_insert, "history_uint", "itemid", "clock", "ns", "value", NULL);
@@ -259,13 +261,12 @@ static void	add_history_uint(const zbx_vector_ptr_t *history)
 	for (i = 0; i < history->values_num; i++)
 	{
 		const ZBX_DC_HISTORY	*h = (ZBX_DC_HISTORY *)history->values[i];
-		int hour;
 
 		if (ITEM_VALUE_TYPE_UINT64 != h->value_type)
 			continue;
 
-		hour = h->ts.sec / (60 * 60);
-		if(complete_hour != -1 && complete_hour != hour){
+		ts = *gmtime(&h->ts.sec);
+		if(complete_hour != -1 && complete_hour != ts.tm_hour){
 			if(db_additional == NULL){
 				db_additional = (zbx_db_insert_t *)zbx_malloc(NULL, sizeof(zbx_db_insert_t));
 				zbx_db_insert_prepare(db_additional, "history_uint", "itemid", "clock", "ns", "value", NULL);
@@ -274,7 +275,7 @@ static void	add_history_uint(const zbx_vector_ptr_t *history)
 			zbx_db_insert_add_values(db_additional, h->itemid, h->ts.sec, h->ts.ns, h->value.ui64);
 		} else {
 			zbx_db_insert_add_values(db_insert, h->itemid, h->ts.sec, h->ts.ns, h->value.ui64);
-			complete_hour = hour;
+			complete_hour = ts.tm_hour;
 		}
 	}
 
@@ -288,6 +289,7 @@ static void	add_history_str(const zbx_vector_ptr_t *history)
 {
 	int		i, complete_hour = -1;
 	zbx_db_insert_t	*db_insert, *db_additional = NULL;
+    struct tm  ts;
 
 	db_insert = (zbx_db_insert_t *)zbx_malloc(NULL, sizeof(zbx_db_insert_t));
 	zbx_db_insert_prepare(db_insert, "history_str", "itemid", "clock", "ns", "value", NULL);
@@ -295,13 +297,12 @@ static void	add_history_str(const zbx_vector_ptr_t *history)
 	for (i = 0; i < history->values_num; i++)
 	{
 		const ZBX_DC_HISTORY	*h = (ZBX_DC_HISTORY *)history->values[i];
-		int hour;
 
 		if (ITEM_VALUE_TYPE_STR != h->value_type)
 			continue;
 
-		hour = h->ts.sec / (60 * 60);
-		if(complete_hour != -1 && complete_hour != hour){
+		ts = *gmtime(&h->ts.sec);
+		if(complete_hour != -1 && complete_hour != ts.tm_hour){
 			if(db_additional == NULL){
 				db_additional = (zbx_db_insert_t *)zbx_malloc(NULL, sizeof(zbx_db_insert_t));
 				zbx_db_insert_prepare(db_additional, "history_str", "itemid", "clock", "ns", "value", NULL);
@@ -310,7 +311,7 @@ static void	add_history_str(const zbx_vector_ptr_t *history)
 			zbx_db_insert_add_values(db_additional, h->itemid, h->ts.sec, h->ts.ns, h->value.ui64);
 		} else {
 			zbx_db_insert_add_values(db_insert, h->itemid, h->ts.sec, h->ts.ns, h->value.ui64);
-			complete_hour = hour;
+			complete_hour = ts.tm_hour;
 		}
 	}
 
