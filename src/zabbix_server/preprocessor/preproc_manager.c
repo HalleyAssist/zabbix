@@ -2052,6 +2052,8 @@ ZBX_THREAD_ENTRY(preprocessing_manager_thread, args)
 			}
 
 			zbx_ipc_message_free(message);
+		} else {
+			preprocessor_assign_tasks();
 		}
 
 		if (NULL != client)
